@@ -9,6 +9,7 @@ interface ParsedTask {
   category: string;
   estimateMinutes: number;
   importance: number;
+  dueAt: string;
   originalLine: string;
 }
 
@@ -57,6 +58,7 @@ export default function ImportPage() {
         category,
         estimateMinutes,
         importance: 3, // Default importance
+        dueAt: '', // Default no due date
         originalLine: line
       };
     });
@@ -91,7 +93,8 @@ export default function ImportPage() {
         title: task.title,
         category: task.category,
         estimateMinutes: task.estimateMinutes,
-        importance: task.importance
+        importance: task.importance,
+        dueAt: task.dueAt || undefined
       }));
 
       const response = await fetch('/api/capture/batch', {
@@ -214,6 +217,7 @@ Write quarterly report`}
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Category</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Estimate</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Priority</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Due Date</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Actions</th>
                     </tr>
                   </thead>
@@ -262,6 +266,14 @@ Write quarterly report`}
                               <option key={i} value={i}>{i}</option>
                             ))}
                           </select>
+                        </td>
+                        <td className="px-4 py-3">
+                          <input
+                            type="datetime-local"
+                            value={task.dueAt}
+                            onChange={(e) => updateTask(index, 'dueAt', e.target.value)}
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                          />
                         </td>
                         <td className="px-4 py-3">
                           <button

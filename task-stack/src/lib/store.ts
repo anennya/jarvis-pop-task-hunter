@@ -24,6 +24,15 @@ class MockStore implements IDataStore {
       .filter(x => !!x.task);
   }
 
+  async listAllSlices(): Promise<(SliceRow & { task: TaskRow })[]> {
+    return this.slices
+      .map(s => ({
+        ...s,
+        task: this.tasks.find(t => t.id === s.task_id)!
+      }))
+      .filter(x => !!x.task);
+  }
+
   async updateSlice(id: string, patch: Partial<SliceRow>) {
     const index = this.slices.findIndex(s => s.id === id);
     if (index >= 0) {
@@ -35,6 +44,20 @@ class MockStore implements IDataStore {
           : this.slices[index].skip_count
       };
     }
+  }
+
+  async updateTask(id: string, patch: Partial<TaskRow>): Promise<TaskRow> {
+    const index = this.tasks.findIndex(t => t.id === id);
+    if (index >= 0) {
+      this.tasks[index] = { ...this.tasks[index], ...patch };
+      return this.tasks[index];
+    }
+    throw new Error(`Task with id ${id} not found`);
+  }
+
+  async deleteTask(id: string): Promise<void> {
+    this.tasks = this.tasks.filter(t => t.id !== id);
+    this.slices = this.slices.filter(s => s.task_id !== id);
   }
 }
 

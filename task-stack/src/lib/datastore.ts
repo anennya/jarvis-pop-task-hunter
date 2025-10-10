@@ -29,5 +29,8 @@ export interface IDataStore {
   insertTask(t: TaskRow): Promise<void>;
   insertSlices(rows: SliceRow[]): Promise<void>;
   listTodoSlices(userId?: string): Promise<(SliceRow & { task: TaskRow })[]>;
+  listAllSlices(userId?: string): Promise<(SliceRow & { task: TaskRow })[]>;
   updateSlice(id: string, patch: Partial<SliceRow>): Promise<void>;
+  updateTask(id: string, patch: Partial<TaskRow>): Promise<TaskRow>;
+  deleteTask(id: string): Promise<void>;
 }

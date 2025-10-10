@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const userId = searchParams.get('userId') || 'demo';
 
     // Get all slices with their tasks
-    const slices = await store.listTodoSlices(userId);
+    const slices = await store.listAllSlices(userId);
     
     // Group slices by task
     const taskMap = new Map<string, TaskWithSlices>();

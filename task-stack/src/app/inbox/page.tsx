@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import type { SliceRow, TaskRow } from '@/lib/datastore';
 import AddTaskModal from '@/components/AddTaskModal';
+import EditTaskModal from '@/components/EditTaskModal';
 
 interface TaskWithSlices extends TaskRow {
   slices: SliceRow[];
@@ -12,6 +13,8 @@ export default function InboxPage() {
   const [tasks, setTasks] = useState<TaskWithSlices[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingTask, setEditingTask] = useState<TaskRow | null>(null);
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<'all' | 'todo' | 'done'>('all');
 
@@ -51,6 +54,19 @@ export default function InboxPage() {
     if (filter === 'todo') return progress.completed < progress.total;
     return true;
   });
+
+  const handleEditTask = (task: TaskRow) => {
+    setEditingTask(task);
+    setShowEditModal(true);
+  };
+
+  const handleTaskUpdated = () => {
+    fetchTasks();
+  };
+
+  const handleTaskDeleted = () => {
+    fetchTasks();
+  };
 
   useEffect(() => {
     fetchTasks();
@@ -179,6 +195,16 @@ export default function InboxPage() {
                         </div>
                       </div>
                       <div className="flex items-center space-x-3">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditTask(task);
+                          }}
+                          className="text-gray-400 hover:text-blue-600 p-1"
+                          title="Edit task"
+                        >
+                          ✏️
+                        </button>
                         <div className="w-24 bg-gray-200 rounded-full h-2">
                           <div
                             className={`h-2 rounded-full transition-all ${
@@ -260,6 +286,17 @@ export default function InboxPage() {
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onTaskAdded={() => fetchTasks()}
+      />
+
+      <EditTaskModal
+        isOpen={showEditModal}
+        task={editingTask}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditingTask(null);
+        }}
+        onTaskUpdated={handleTaskUpdated}
+        onTaskDeleted={handleTaskDeleted}
       />
     </div>
   );

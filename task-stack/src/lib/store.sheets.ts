@@ -100,6 +100,52 @@ export class SheetsStore implements IDataStore {
       .filter(x => !!x.task);
   }
 
+  async listAllSlices(): Promise<(SliceRow & { task: TaskRow })[]> {
+    const sheets = sheetsClient();
+    const [tasksResp, slicesResp] = await Promise.all([
+      sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: TASKS_RANGE }),
+      sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: SLICES_RANGE }),
+    ]);
+
+    const [, ...taskRows] = tasksResp.data.values ?? [];
+    const [, ...sliceRows] = slicesResp.data.values ?? [];
+
+    const tasks = new Map(
+      taskRows.map(r => [
+        r[0],
+        {
+          id: r[0],
+          user_id: r[1],
+          title: r[2],
+          category: r[3],
+          importance: Number(r[4] ?? 3),
+          energy: r[5],
+          context: r[6],
+          estimate_minutes: Number(r[7] ?? 15),
+          due_at: r[8] || null,
+          notes: r[9] || null,
+          link: r[10] || null,
+          created_at: r[11]
+        } as TaskRow
+      ])
+    );
+
+    return sliceRows
+      .map(r => ({
+        id: r[0],
+        task_id: r[1],
+        title: r[2],
+        sequence_index: Number(r[3] ?? 1),
+        planned_minutes: Number(r[4] ?? 15),
+        status: (r[5] ?? 'todo') as 'todo' | 'doing' | 'done',
+        skip_count: Number(r[6] ?? 0),
+        snoozed_until: r[7] || null,
+        done_at: r[8] || null,
+        task: tasks.get(r[1])!
+      }))
+      .filter(x => !!x.task);
+  }
+
   async updateSlice(id: string, patch: Partial<SliceRow>) {
     // Minimal MVP: re-read Slices, find row by id in column A, then values.update that row's cells.
     // This is a simplified implementation - in production you'd want to be more efficient
@@ -127,6 +173,114 @@ export class SheetsStore implements IDataStore {
         range: `Slices!A${rowIndex + 2}:I${rowIndex + 2}`,
         valueInputOption: 'USER_ENTERED',
         requestBody: { values: [updatedRow] }
+      });
+    }
+  }
+
+  async updateTask(id: string, patch: Partial<TaskRow>): Promise<TaskRow> {
+    const sheets = sheetsClient();
+    const tasksResp = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: TASKS_RANGE
+    });
+
+    const [header, ...taskRows] = tasksResp.data.values ?? [];
+    const rowIndex = taskRows.findIndex(r => r[0] === id);
+    
+    if (rowIndex >= 0) {
+      const row = taskRows[rowIndex];
+      const updatedRow = [...row];
+      
+      // Update specific fields based on patch
+      if (patch.title !== undefined) updatedRow[2] = patch.title;
+      if (patch.category !== undefined) updatedRow[3] = patch.category || '';
+      if (patch.importance !== undefined) updatedRow[4] = String(patch.importance);
+      if (patch.estimate_minutes !== undefined) updatedRow[7] = String(patch.estimate_minutes);
+      if (patch.due_at !== undefined) updatedRow[8] = patch.due_at || '';
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `Tasks!A${rowIndex + 2}:L${rowIndex + 2}`,
+        valueInputOption: 'USER_ENTERED',
+        requestBody: { values: [updatedRow] }
+      });
+
+      return {
+        id: updatedRow[0],
+        user_id: updatedRow[1],
+        title: updatedRow[2],
+        category: updatedRow[3],
+        importance: Number(updatedRow[4] ?? 3),
+        energy: updatedRow[5],
+        context: updatedRow[6],
+        estimate_minutes: Number(updatedRow[7] ?? 15),
+        due_at: updatedRow[8] || null,
+        notes: updatedRow[9] || null,
+        link: updatedRow[10] || null,
+        created_at: updatedRow[11]
+      } as TaskRow;
+    }
+    
+    throw new Error(`Task with id ${id} not found`);
+  }
+
+  async deleteTask(id: string): Promise<void> {
+    const sheets = sheetsClient();
+    
+    // First delete all slices for this task
+    const slicesResp = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: SLICES_RANGE
+    });
+
+    const [, ...sliceRows] = slicesResp.data.values ?? [];
+    const sliceRowsToDelete = sliceRows
+      .map((row, index) => ({ row, index: index + 2 }))
+      .filter(({ row }) => row[1] === id)
+      .reverse(); // Delete from bottom to top to maintain indices
+
+    for (const { index } of sliceRowsToDelete) {
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId: SPREADSHEET_ID,
+        requestBody: {
+          requests: [{
+            deleteDimension: {
+              range: {
+                sheetId: 1, // Assuming Slices sheet has ID 1
+                dimension: 'ROWS',
+                startIndex: index - 1,
+                endIndex: index
+              }
+            }
+          }]
+        }
+      });
+    }
+
+    // Then delete the task
+    const tasksResp = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: TASKS_RANGE
+    });
+
+    const [, ...taskRows] = tasksResp.data.values ?? [];
+    const taskRowIndex = taskRows.findIndex(r => r[0] === id);
+    
+    if (taskRowIndex >= 0) {
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId: SPREADSHEET_ID,
+        requestBody: {
+          requests: [{
+            deleteDimension: {
+              range: {
+                sheetId: 0, // Assuming Tasks sheet has ID 0
+                dimension: 'ROWS',
+                startIndex: taskRowIndex + 1,
+                endIndex: taskRowIndex + 2
+              }
+            }
+          }]
+        }
       });
     }
   }
