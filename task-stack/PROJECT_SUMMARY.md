@@ -27,23 +27,7 @@ Next.js App Router
 - **URL**: `jarvis-pop-task-hunter.vercel.app`
 - **Repository**: `anennya/jarvis-pop-task-hunter`
 
-## Authentication
-- **Username**: `admin`
-- **Password**: `jarvis2024` (change in production)
 
-## Google Sheets Integration
-- **Spreadsheet ID**: `1q7N9TfJDqCQ9z3nY2KrgTig0_sAyqNHir1uITiCCo9U`
-- **Service Account**: `task-stack-service-account@task-stack-474519.iam.gserviceaccount.com`
-- **Tabs**: Tasks, Slices
-
-## Environment Variables
-```bash
-DATA_BACKEND=sheets
-AUTH_USERNAME=admin
-AUTH_PASSWORD=jarvis2024
-SHEETS_ID=1q7N9TfJDqCQ9z3nY2KrgTig0_sAyqNHir1uITiCCo9U
-GOOGLE_SERVICE_ACCOUNT_JSON={"type":"service_account"...}
-```
 
 ## Category Templates
 1. **Admin** (60min): Setup → Gather Info → Complete Action → Review → Archive
