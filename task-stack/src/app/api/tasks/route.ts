@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { store } from '@/lib/store';
+import type { TaskRow, SliceRow } from '@/lib/datastore';
+
+interface TaskWithSlices extends TaskRow {
+  slices: SliceRow[];
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,7 +15,7 @@ export async function GET(request: NextRequest) {
     const slices = await store.listTodoSlices(userId);
     
     // Group slices by task
-    const taskMap = new Map();
+    const taskMap = new Map<string, TaskWithSlices>();
     
     slices.forEach(slice => {
       const taskId = slice.task_id;
@@ -20,18 +25,18 @@ export async function GET(request: NextRequest) {
           slices: []
         });
       }
-      taskMap.get(taskId).slices.push(slice);
+      taskMap.get(taskId)!.slices.push(slice);
     });
 
     // Sort slices within each task by sequence_index
     taskMap.forEach(task => {
-      task.slices.sort((a: any, b: any) => a.sequence_index - b.sequence_index);
+      task.slices.sort((a: SliceRow, b: SliceRow) => a.sequence_index - b.sequence_index);
     });
 
     const tasks = Array.from(taskMap.values());
     
     // Sort tasks by creation date (newest first)
-    tasks.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    tasks.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
 
     return NextResponse.json({ tasks });
   } catch (error) {
