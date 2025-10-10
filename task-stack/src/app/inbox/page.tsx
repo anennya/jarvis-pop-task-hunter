@@ -74,12 +74,20 @@ export default function InboxPage() {
               <span className="text-2xl">🤖</span>
               <h1 className="text-2xl font-bold text-gray-900">Jarvis Pop Task Hunter</h1>
             </div>
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-            >
-              Add Task
-            </button>
+            <div className="flex space-x-3">
+              <a
+                href="/import"
+                className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              >
+                Import Tasks
+              </a>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              >
+                Add Task
+              </button>
+            </div>
           </div>
         </div>
       </header>
