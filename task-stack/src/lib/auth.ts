@@ -5,7 +5,7 @@ const AUTH_COOKIE = 'jarvis-auth';
 const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export async function checkAuth(): Promise<boolean> {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const authCookie = cookieStore.get(AUTH_COOKIE);
   
   if (!authCookie) return false;
