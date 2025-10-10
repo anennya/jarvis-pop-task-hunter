@@ -1,0 +1,11 @@
+{
+  "name": "jarvis-pop-task-hunter",
+  "version": 2,
+  "env": {
+    "DATA_BACKEND": "sheets",
+    "AUTH_USERNAME": "@auth-username",
+    "AUTH_PASSWORD": "@auth-password", 
+    "SHEETS_ID": "@sheets-id",
+    "GOOGLE_SERVICE_ACCOUNT_JSON": "@google-service-account-json"
+  }
+}
