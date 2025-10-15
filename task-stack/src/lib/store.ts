@@ -61,7 +61,15 @@ class MockStore implements IDataStore {
   }
 }
 
+const dataBackend = process.env.DATA_BACKEND;
+console.log('DATA_BACKEND environment variable:', dataBackend);
+console.log('Selected store type:', 
+  dataBackend === 'sheets' ? 'SheetsStore' :
+  dataBackend === 'supabase' ? 'SupabaseStore' :
+  'MockStore (default)'
+);
+
 export const store: IDataStore = 
-  process.env.DATA_BACKEND === 'sheets' ? new SheetsStore() :
-  process.env.DATA_BACKEND === 'supabase' ? new SupabaseStore() :
+  dataBackend === 'sheets' ? new SheetsStore() :
+  dataBackend === 'supabase' ? new SupabaseStore() :
   new MockStore();

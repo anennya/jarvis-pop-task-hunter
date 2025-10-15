@@ -27,8 +27,10 @@ interface BatchProcessResult {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('Batch API called with DATA_BACKEND:', process.env.DATA_BACKEND);
     const body = await request.json();
     const { tasks, userId = 'demo' } = body;
+    console.log('Processing', tasks.length, 'tasks for user:', userId);
 
     if (!tasks || !Array.isArray(tasks)) {
       return NextResponse.json({ error: 'Tasks array is required' }, { status: 400 });
@@ -63,8 +65,10 @@ export async function POST(request: NextRequest) {
         );
 
         // Store the task and slices
+        console.log('Storing task:', task.title, 'with', slices.length, 'slices');
         await store.insertTask(task);
         await store.insertSlices(slices);
+        console.log('Successfully stored task:', task.id);
 
         result.tasks.push({
           title: task.title,
