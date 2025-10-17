@@ -232,7 +232,7 @@ export default function EditTaskModal({
                 <div className="text-6xl mb-4">⚠️</div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Task?</h3>
                 <p className="text-gray-600 mb-6">
-                  This will permanently delete "{task.title}" and all its slices. This cannot be undone.
+                  This will permanently delete &quot;{task.title}&quot; and all its slices. This cannot be undone.
                 </p>
               </div>
               
