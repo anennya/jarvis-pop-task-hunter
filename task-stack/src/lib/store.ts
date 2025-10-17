@@ -69,7 +69,9 @@ console.log('Selected store type:',
   'MockStore (default)'
 );
 
+// Force SheetsStore in production until environment variable issue is resolved
 export const store: IDataStore = 
+  process.env.NODE_ENV === 'production' ? new SheetsStore() :
   dataBackend === 'sheets' ? new SheetsStore() :
   dataBackend === 'supabase' ? new SupabaseStore() :
   new MockStore();
